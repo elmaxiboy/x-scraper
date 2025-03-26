@@ -111,6 +111,16 @@ def login():
         username.send_keys(Keys.RETURN)
         time.sleep(5)
 
+        try:
+           driver.find_element("xpath", "//span[contains(text(), 'please enter your phone number')]")
+           phone_or_email= driver.find_element("xpath", "//input[@data-testid='ocfEnterTextTextInput']")
+           phone_or_email.send_keys(os.getenv('EMAIL'))
+           phone_or_email.send_keys(Keys.RETURN)
+           time.sleep(5)
+
+        except NoSuchElementException as e:
+            pass   
+
         password = driver.find_element("xpath", "//input[@autocomplete='current-password']")
         password.send_keys(os.getenv('PASSWORD'))
         password.send_keys(Keys.RETURN)
@@ -125,6 +135,7 @@ def login():
     except Exception as e:
         logging.error(f"Error logging in, you might check the screenshots for any clue: {e}")
         take_screenshot("error_login")
+        raise(e)
     
 
 
