@@ -1,21 +1,55 @@
 import argparse
+from datetime import datetime, timedelta
 import logging
+import re
 import time
+from urllib.parse import quote_plus
 import pandas as pd
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.firefox.service import Service
-from selenium.common.exceptions import (
-    NoSuchElementException,
-    StaleElementReferenceException,
-    WebDriverException,
-)
+from selenium.common.exceptions import NoSuchElementException
 from webdriver_manager.firefox import GeckoDriverManager
+import os
+from dotenv import load_dotenv
 
+# Initialize WebDriver globally
+driver = None
 
+#Initialize environment variables
+load_dotenv()
 
-def scrape_x(keyword):
+# Dictionary with useful fields for Solana-related tweets
+search_params = {
+    'queries': ['solana', '#solana', 'solana crypto'],  # List of main queries or hashtags
+    'hashtags': ['#solana', '#cryptocurrency'],  # List of hashtags to track
+    'langs': ['en', 'es'],  # List of languages
+    'types': ['live', 'top']  # Types of tweets (e.g., 'live', 'top')
+}
+
+tweets_data = {"tweets": []}
+
+def get_new_height(driver,last_tweet):
+
+    driver.execute_script("arguments[0].scrollIntoView();", last_tweet)
+
+    for _ in range(50):  # Simulate a user scrolling gradually
+        #driver.find_element(By.TAG_NAME, "body").send_keys(Keys.PAGE_DOWN)
+        driver.execute_script("window.scrollBy(0, window.innerHeight);")
+        time.sleep(0.2) 
+
+    
+    new_height = driver.execute_script("return document.body.scrollHeight")
+
+    logging.debug("New height is: {}",new_height)
+
+    return new_height
+
+def init_web_driver():
+    
+    global driver
+
     # Configure Selenium WebDriver
     options = webdriver.FirefoxOptions()
     options.add_argument("--headless")  # Run in headless mode (no GUI)
@@ -31,155 +65,257 @@ def scrape_x(keyword):
     
     # Initialize WebDriver
     driver = webdriver.Firefox(service=Service(GeckoDriverManager().install()), options=options)
+
+    driver.maximize_window()
+
+def take_screenshot(step):
     
-    # X (Twitter) search URL
+    global driver 
+
+    os.makedirs("screenshots/",exist_ok=True)
+
+    login_window=driver.get_full_page_screenshot_as_png()
+
+    with open("screenshots/"+str(step)+".png", 'wb') as file:
+            file.write(login_window)      
+
+def two_factor_authentication():
+
+    global driver
+
     try:
-        driver.maximize_window()
-        driver.get('https://twitter.com/i/flow/login')
-        time.sleep(5)
+        
+        verification_code = input("🔑 Enter the verification code sent to your Auth App: ") 
 
-        username = driver.find_element(
-                        "xpath", "//input[@autocomplete='username']"
-                    )
-
-        username.send_keys("ViegasMax")
-
-
-        username.send_keys(Keys.RETURN)
-        time.sleep(5)
-        password = driver.find_element(
-                        "xpath", "//input[@autocomplete='current-password']"
-                    )
-        password.send_keys("H3ySt4y0un6!")
-
-
-        password.send_keys(Keys.RETURN)
-        time.sleep(5)
-
-
-        login_window=driver.get_full_page_screenshot_as_png()
-
-        with open("verification_code.png", 'wb') as file:
-            file.write(login_window) 
-
-
-        twofactor = driver.find_element(
-                        "xpath", "//input[@autocomplete='on']"
-                    )
-        verification_code = input("🔑 Enter the verification code sent to your phone/email: ")
-
+        twofactor = driver.find_element("xpath", "//input[@autocomplete='on']")
         twofactor.send_keys(verification_code)
         twofactor.send_keys(Keys.RETURN)
         time.sleep(5)
 
-        login_window=driver.get_full_page_screenshot_as_png()
+    except Exception as e:
+        logging.warning(f"Unable to type 2FA code: {e}")
+        raise(e)
+    
 
-        with open("landing_page.png", 'wb') as file:
-            file.write(login_window) 
+def login():
+     
+    global driver 
+
+    try:
+
+        driver.get('https://x.com/i/flow/login')
+        time.sleep(5)
+        
+        username = driver.find_element("xpath", "//input[@autocomplete='username']")
+        username.send_keys(os.getenv('USERNAME'))
+        username.send_keys(Keys.RETURN)
+        time.sleep(5)
+
+        password = driver.find_element("xpath", "//input[@autocomplete='current-password']")
+        password.send_keys(os.getenv('PASSWORD'))
+        password.send_keys(Keys.RETURN)
+        time.sleep(5)
+
+        two_factor_authentication()
+
+        handle_cookies()
+        
+        logging.info("Login succeeded!")
+
+    except Exception as e:
+        logging.error(f"Error logging in, you might check the screenshots for any clue: {e}")
+        take_screenshot("error_login")
+    
 
 
-        try:
-            accept_cookies_btn = driver.find_element(
-            "xpath", "//span[text()='Refuse non-essential cookies']/../../..")
-            accept_cookies_btn.click()
-        except NoSuchElementException:
+def handle_cookies():
+
+    global driver
+    
+    try:
+            
+        cookies_banner = driver.find_element("xpath", "//span[text()='Refuse non-essential cookies']/../../..")    
+        cookies_banner.click()
+
+    except NoSuchElementException:
             pass
-
+    
+    try:
+         
         cookies = driver.get_cookies()
-
-        auth_token = None
         for cookie in cookies:
             if cookie["name"] == "auth_token":
-                auth_token = cookie["value"]
-                break
-        if auth_token is None:
-            raise ValueError(
-                """This may be due to the following:
-
-                - Internet connection is unstable
-                - Username is incorrect
-                - Password is incorrect
-                """
-                    )
+                break    
     except Exception as e:
-            print()
-            logging.error(f"Login failed: {e}")
+         raise(e)
+
+
+def get_dynamic_dates():
+    # Get today's date
+    today = datetime.today()
+    # Get the date 7 days ago
+    seven_days_ago = today - timedelta(days=7)
     
-    logging.info("Login succeeded!")
-
-    search_url = "https://x.com/search?q=(solana%20OR%20%24SOL)%20(hack%20OR%20exploit%20OR%20vulnerability%20OR%20bug%20OR%20rug%20OR%20phishing%20OR%20scam%20OR%20attack%20OR%20breach%20OR%20failure%20OR%20downtime%20OR%20issue%20OR%20critical)%20since%3A2025-03-19%20until%3A2025-03-26&src=typed_query&f=live"
-    driver.get(search_url)
-    # Wait for the page to load
-    time.sleep(5)
+    # Format both dates in YYYY-MM-DD format
+    until_date = today.strftime('%Y-%m-%d')
+    since_date = seven_days_ago.strftime('%Y-%m-%d')
     
-    search_window=driver.get_full_page_screenshot_as_png()
-    with open("search.png", 'wb') as file:
-            file.write(search_window) 
+    return since_date, until_date
 
-    tweets=driver.find_elements(
-            "xpath", '//article[@data-testid="tweet" and not(@disabled)]'
-        )
+
+# Function to generate the URL for the search with dynamic dates
+def generate_search_url(params):
+
+    base_url = "https://x.com/search?q="
     
-    for tweet in tweets:
-         print(tweet.text)
+    since_date, until_date = get_dynamic_dates()
+    
+    query_parts = []
+    
+    # Combine multiple queries and hashtags
+    for query in params['queries']:
+        query_parts.append(quote_plus(query))
+    
+    for hashtag in params['hashtags']:
+        query_parts.append(f"({quote_plus(hashtag)})")
+    
+    query_str = " ".join(query_parts) + f"%20until%3A{quote_plus(until_date)}%20since%3A{quote_plus(since_date)}"
+    
+    lang = params['langs'][0]
+    tweet_type = params['types'][0]
+    
+   
+    query_str += f"&lang={lang}&src=typed_query&f={tweet_type}"
+    
+    return base_url + query_str
+
+
+def scrape_x(keyword):
+    
+    global driver
+    global search_params
+    global tweets_data
+
+    try:
+        
+        search_url= generate_search_url(search_params)
+        driver.get(search_url)
+        time.sleep(5)
+    
+        take_screenshot("tweet_search")
+
+        last_height = driver.execute_script("return document.body.scrollHeight")
+        scraped_tweet_ids=set()
+
+
+        while True:
+
+            new_tweets=driver.find_elements("xpath", '//article[@data-testid="tweet"]')
+
+            if len(new_tweets)>0:
+
+                for tweet in new_tweets:
+
+                    if tweet.id not in scraped_tweet_ids:
+
+                        scraped_tweet_ids.add(tweet.id)
+                        
+                        tweet_lines = tweet.text.split("\n")
+
+                        full_date_format = "%b %d, %Y"  # Example: "Oct 17, 2015"
+                        short_date_format = "%b %d" # Example: "Mar 26"
+
+                        # Get today's date and calculate the cutoff date (7 days ago)
+                        today = datetime.today()
+                        cutoff_date = today - timedelta(days=7)
+                        
+                        tweet_name = tweet_lines[0]
+                        tweet_username = tweet_lines[1]
+                        tweet_date_str = tweet_lines[3]
+                        tweet_content ="\n".join(tweet_lines[4:])
+
+                        if re.match(r"^\d+[smh]$", tweet_date_str):  # Matches "5s", "10m", "3h"
+                            num = int(re.findall(r"\d+", tweet_date_str)[0])
+                            unit = tweet_date_str[-1]
+                    
+                            if unit == "s":  # Seconds ago
+                                tweet_date = today - timedelta(seconds=num)
+                            elif unit == "m":  # Minutes ago
+                                tweet_date = today - timedelta(minutes=num)
+                            elif unit == "h":  # Hours ago
+                                tweet_date = today - timedelta(hours=num)
+
+                        elif "," in tweet_date_str:  # Full date format
+                            tweet_date = datetime.strptime(tweet_date_str, full_date_format)
+                    
+                        else:  # Short date format (assume current year)
+                            tweet_date = datetime.strptime(tweet_date_str, short_date_format)
+                            tweet_date = tweet_date.replace(year=today.year)
+
+                        print("Tweet date ="+str(tweet_date))
+
+                        if tweet_date < cutoff_date:
+                            break
+                        
+                        tweet_details = {
+                            "name": tweet_name,  
+                            "username": tweet_username,
+                            "date": str(tweet_date), 
+                            "content": tweet_content
+                        }
+
+                        tweets_data["tweets"].append(tweet_details)
+
+                new_height= get_new_height(driver,new_tweets[-1])
+
+                if  new_height== last_height:
+                    logging.info("Reached end of page or no new tweets found.")
+                    break  # Stop scrolling if no more content is loading
+                last_height = new_height  # Update last height   
+    
+    
+
+    except Exception as e:
+         logging.error(f"Error while scraping, check screenshot for more clues: {e}")
+         take_screenshot("error_scrapping")
+    
+    finally:
+        df = pd.DataFrame(tweets_data)
+        df.to_csv("solana_tweets.csv", index=False)
+        logging.info("Scraping finalized with errors. Data saved to solana_tweets_selenium.csv")
+
 
     
-    driver.get('https://x.com/logout')
-    time.sleep(5)
+def logout():
 
-    logout_window=driver.get_full_page_screenshot_as_png()
-    with open("logout.png", 'wb') as file:
-            file.write(logout_window) 
+    global driver
+
+    try:
+
+        driver.get('https://x.com/logout')
+        time.sleep(5)
+
+        text="Log out"
+        logout = driver.find_element(By.XPATH, f"//span[contains(text(), '{text}')]")
+        logout.click()
+        time.sleep(5)
+
+    except Exception as e:
+
+        logging.error(f"Error while logging out, check screenshot for more clues: {e}")
+        take_screenshot("error_logout")
+
+    finally:
+        driver.close()
+        driver.quit()
 
 
-    text="Log out"
-    logout = driver.find_element(By.XPATH, f"//span[contains(text(), '{text}')]")
-    logout.click()
-
-    time.sleep(5)
-
-    login_window=driver.get_full_page_screenshot_as_png()
-
-    with open("last.png", 'wb') as file:
-            file.write(login_window) 
-
-    driver.close()
-    driver.quit()
-
-    
-    # Scroll and collect tweets
-    tweets_data = []
-    """ tweet_count = 50  # Adjust the number of tweets you want to scrape
-    while len(tweets_data) < tweet_count:
-        tweets = driver.find_elements(By.XPATH, '//article[@role="article"]')
-        for tweet in tweets:
-            try:
-                username = tweet.find_element(By.XPATH, './/span[contains(text(), "@")]').text
-                content = tweet.find_element(By.XPATH, './/div[@lang]').text
-                date = tweet.find_element(By.XPATH, './/time').get_attribute('datetime')
-                tweet_link = tweet.find_element(By.XPATH, './/a[contains(@href, "/status/")]').get_attribute("href")
-    
-                tweets_data.append([date, username, content, tweet_link])
-    
-                if len(tweets_data) >= tweet_count:
-                    break
-            except Exception:
-                continue
-            
-        driver.find_element(By.TAG_NAME, 'body').send_keys(Keys.PAGE_DOWN)
-        time.sleep(2)
-     """
-    # Save tweets to CSV
-    df = pd.DataFrame(tweets_data, columns=["Date", "User", "Tweet", "URL"])
-    df.to_csv("solana_tweets_selenium.csv", index=False)
-    
-    print("Scraping complete. Data saved to solana_tweets_selenium.csv")
-    driver.close()
-    driver.quit()
 
 if __name__ == "__main__":
-    
+
+
     logging.basicConfig(level=logging.INFO)
+
 
     # Initialize the parser
     parser = argparse.ArgumentParser(description='Scraper X tweets')
@@ -192,6 +328,12 @@ if __name__ == "__main__":
     
     logging.info("Scraping X website for tweets of {}".format(args.keyword))
 
-    scrape_x(args.keyword)
+    try:
+        init_web_driver()
+        login()
+        scrape_x(args.keyword)
+        logout()
+    except Exception as e:
+        logging.error(f"Error while scraping: {e}")    
 
     
