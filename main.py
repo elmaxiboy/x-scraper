@@ -1,5 +1,6 @@
 import argparse
 from datetime import datetime, timedelta
+import json
 import logging
 import re
 import time
@@ -9,7 +10,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.firefox.service import Service
-from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import NoSuchElementException,StaleElementReferenceException
 from webdriver_manager.firefox import GeckoDriverManager
 import os
 from dotenv import load_dotenv
@@ -20,53 +21,63 @@ driver = None
 #Initialize environment variables
 load_dotenv()
 
-# Dictionary with useful fields for Solana-related tweets
-search_params = {
-    'queries': ['solana', '#solana', 'solana crypto'],  # List of main queries or hashtags
-    'hashtags': ['#solana', '#cryptocurrency'],  # List of hashtags to track
-    'langs': ['en', 'es'],  # List of languages
-    'types': ['live', 'top']  # Types of tweets (e.g., 'live', 'top')
-}
 
 tweets_data = {"tweets": []}
 
-def get_new_height(driver,last_tweet):
+full_date_format = "%b %d, %Y"  # Example: "Oct 17, 2015"
+short_date_format = "%b %d" # Example: "Mar 26"
 
-    driver.execute_script("arguments[0].scrollIntoView();", last_tweet)
+# Get today's date and calculate the cutoff date (7 days ago)
+today = datetime.today()
+cutoff_date = today - timedelta(days=7)
 
-    for _ in range(50):  # Simulate a user scrolling gradually
-        #driver.find_element(By.TAG_NAME, "body").send_keys(Keys.PAGE_DOWN)
-        driver.execute_script("window.scrollBy(0, window.innerHeight);")
-        time.sleep(0.2) 
+MAX_RETRIES = 3
+MAX_DELAY = 5
 
+def get_new_height(driver,last_tweet, last_height):
+
+    try:
+
+        driver.execute_script("arguments[0].scrollIntoView();", last_tweet)
+
+        for _ in range(50):  # Simulate a user scrolling gradually
+            driver.execute_script("window.scrollBy(0, window.innerHeight);")
+            time.sleep(0.2) 
+        new_height = driver.execute_script("return document.body.scrollHeight")
+
+        logging.debug("New height is: {}",new_height)
+
+        return new_height
+    except StaleElementReferenceException as e:
+         
+         logging.warning("Scrolling relying on stale element.")
+         return last_height-1
     
-    new_height = driver.execute_script("return document.body.scrollHeight")
-
-    logging.debug("New height is: {}",new_height)
-
-    return new_height
-
 def init_web_driver():
     
-    global driver
-
-    # Configure Selenium WebDriver
-    options = webdriver.FirefoxOptions()
-    options.add_argument("--headless")  # Run in headless mode (no GUI)
-    options.add_argument("--user-agent={}".format("Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:122.0) Gecko/20100101 Firefox/122.0"))
-    options.add_argument("--disable-blink-features=AutomationControlled")
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-dev-shm-usage")
-    options.add_argument("--ignore-certificate-errors")
-    options.add_argument("--disable-gpu")
-    options.add_argument("--log-level=3")
-    options.add_argument("--disable-notifications")
-    options.add_argument("--disable-popup-blocking")
+    try:
+         
+        global driver
     
-    # Initialize WebDriver
-    driver = webdriver.Firefox(service=Service(GeckoDriverManager().install()), options=options)
-
-    driver.maximize_window()
+        # Configure Selenium WebDriver
+        options = webdriver.FirefoxOptions()
+        options.add_argument("--headless")  # Run in headless mode (no GUI)
+        options.add_argument("--user-agent={}".format("Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:122.0) Gecko/20100101 Firefox/122.0"))
+        options.add_argument("--disable-blink-features=AutomationControlled")
+        options.add_argument("--no-sandbox")
+        options.add_argument("--disable-dev-shm-usage")
+        options.add_argument("--ignore-certificate-errors")
+        options.add_argument("--disable-gpu")
+        options.add_argument("--log-level=3")
+        options.add_argument("--disable-notifications")
+        options.add_argument("--disable-popup-blocking")
+        
+        # Initialize WebDriver
+        driver = webdriver.Firefox(service=Service(GeckoDriverManager().install()), options=options)
+    
+        driver.maximize_window()
+    except Exception as e:
+         logging.error(f"Failed to initialize WebDriver: {e}")
 
 def take_screenshot(step):
     
@@ -79,6 +90,46 @@ def take_screenshot(step):
     with open("screenshots/"+str(step)+".png", 'wb') as file:
             file.write(login_window)      
 
+def extra_security_prompt():
+    
+    global driver
+
+    try:
+        driver.find_element("xpath", "//span[contains(text(), 'please enter your phone number')]")
+        phone_or_email= driver.find_element("xpath", "//input[@data-testid='ocfEnterTextTextInput']")
+        phone_or_email.send_keys(os.getenv('EMAIL'))
+        phone_or_email.send_keys(Keys.RETURN)
+        time.sleep(MAX_DELAY)
+
+    except NoSuchElementException as e:
+        pass    
+
+def suspicious_activity_detected():
+    
+    global driver
+
+    try:
+        driver.find_element("xpath", "//span[contains(text(), 'Suspicious login prevented')]")
+        close_button= driver.find_element("xpath", "//button[@data-testid='OCF_CallToAction_Button']")
+        close_button.send_keys(Keys.RETURN)
+        raise("Suspicious activity was detected and login was suspended. Please take a break from scrapping and retry later.")
+
+    except NoSuchElementException as e:
+        pass    
+
+def search_no_results():
+    
+    global driver
+    try:
+        driver.find_element("xpath", "//span[contains(text(), 'No results for')]")
+        raise("No results were found for your search. Try another configuration.")
+
+    except NoSuchElementException as e:
+         pass
+    except Exception as e:
+         raise(e)    
+
+
 def two_factor_authentication():
 
     global driver
@@ -90,7 +141,7 @@ def two_factor_authentication():
         twofactor = driver.find_element("xpath", "//input[@autocomplete='on']")
         twofactor.send_keys(verification_code)
         twofactor.send_keys(Keys.RETURN)
-        time.sleep(5)
+        time.sleep(MAX_DELAY)
 
     except Exception as e:
         logging.warning(f"Unable to type 2FA code: {e}")
@@ -104,30 +155,22 @@ def login():
     try:
 
         driver.get('https://x.com/i/flow/login')
-        time.sleep(5)
+        time.sleep(MAX_DELAY)
         
         username = driver.find_element("xpath", "//input[@autocomplete='username']")
         username.send_keys(os.getenv('USERNAME'))
         username.send_keys(Keys.RETURN)
-        time.sleep(5)
-
-        try:
-           driver.find_element("xpath", "//span[contains(text(), 'please enter your phone number')]")
-           phone_or_email= driver.find_element("xpath", "//input[@data-testid='ocfEnterTextTextInput']")
-           phone_or_email.send_keys(os.getenv('EMAIL'))
-           phone_or_email.send_keys(Keys.RETURN)
-           time.sleep(5)
-
-        except NoSuchElementException as e:
-            pass   
+        time.sleep(MAX_DELAY)
+        
+        extra_security_prompt()
 
         password = driver.find_element("xpath", "//input[@autocomplete='current-password']")
         password.send_keys(os.getenv('PASSWORD'))
         password.send_keys(Keys.RETURN)
-        time.sleep(5)
+        time.sleep(MAX_DELAY)
 
+        suspicious_activity_detected()
         two_factor_authentication()
-
         handle_cookies()
         
         logging.info("Login succeeded!")
@@ -137,7 +180,6 @@ def login():
         take_screenshot("error_login")
         raise(e)
     
-
 
 def handle_cookies():
 
@@ -184,13 +226,10 @@ def generate_search_url(params):
     query_parts = []
     
     # Combine multiple queries and hashtags
-    for query in params['queries']:
-        query_parts.append(quote_plus(query))
+    queries_part = " OR ".join([quote_plus(query) for query in params["queries"]])
+    hashtags_part = " OR ".join([quote_plus(hashtag) for hashtag in params["hashtags"]])
     
-    for hashtag in params['hashtags']:
-        query_parts.append(f"({quote_plus(hashtag)})")
-    
-    query_str = " ".join(query_parts) + f"%20until%3A{quote_plus(until_date)}%20since%3A{quote_plus(since_date)}"
+    query_str = f"({queries_part}) ({hashtags_part})" + f"%20until%3A{quote_plus(until_date)}%20since%3A{quote_plus(since_date)}"
     
     lang = params['langs'][0]
     tweet_type = params['types'][0]
@@ -200,100 +239,101 @@ def generate_search_url(params):
     
     return base_url + query_str
 
+def format_date(tweet_date_str, last_tweet_date):
 
-def scrape_x(keyword):
-    
-    global driver
-    global search_params
-    global tweets_data
+    global full_date_format
+    global short_date_format
+    global today
 
     try:
+         
+        if re.match(r"^\d+[smh]$", tweet_date_str):  # Matches "5s", "10m", "3h"
+            num = int(re.findall(r"\d+", tweet_date_str)[0])
+            unit = tweet_date_str[-1]
+
+            if unit == "s":  # Seconds ago
+                tweet_date = today - timedelta(seconds=num)
+            elif unit == "m":  # Minutes ago
+                tweet_date = today - timedelta(minutes=num)
+            elif unit == "h":  # Hours ago
+                                    tweet_date = today - timedelta(hours=num)
+
+        elif "," in tweet_date_str:  # Full date format
+            tweet_date = datetime.strptime(tweet_date_str, full_date_format)
+
+        else:  # Short date format (assume current year)
+            tweet_date = datetime.strptime(tweet_date_str, short_date_format)
+            tweet_date = tweet_date.replace(year=today.year)
+
+        logging.debug("Formatted date: "+tweet_date_str+ " ==> "+str(tweet_date))    
         
+        return tweet_date
+    
+    except Exception as e:        
+            logging.warning(f"Could not format {tweet_date_str} to datetime: {e}, last date considered")
+            return last_tweet_date
+
+
+def scrape_x():
+    
+    global driver
+    global tweets_data
+    scraped_tweet_ids=set()
+
+    with open("search_params.json", "r", encoding="utf-8") as file:
+        search_params = json.load(file) 
+
+   
+    try:
         search_url= generate_search_url(search_params)
         driver.get(search_url)
-        time.sleep(5)
-    
+        time.sleep(MAX_DELAY)
+        search_no_results()
+        
         take_screenshot("tweet_search")
-
         last_height = driver.execute_script("return document.body.scrollHeight")
-        scraped_tweet_ids=set()
-
-
+        last_tweet_date=today
+        
         while True:
-
             new_tweets=driver.find_elements("xpath", '//article[@data-testid="tweet"]')
-
             if len(new_tweets)>0:
-
+                logging.info(f"{len(new_tweets)} new tweets were found.")
                 for tweet in new_tweets:
-
                     if tweet.id not in scraped_tweet_ids:
-
                         scraped_tweet_ids.add(tweet.id)
-                        
                         tweet_lines = tweet.text.split("\n")
-
-                        full_date_format = "%b %d, %Y"  # Example: "Oct 17, 2015"
-                        short_date_format = "%b %d" # Example: "Mar 26"
-
-                        # Get today's date and calculate the cutoff date (7 days ago)
-                        today = datetime.today()
-                        cutoff_date = today - timedelta(days=7)
-                        
                         tweet_name = tweet_lines[0]
                         tweet_username = tweet_lines[1]
                         tweet_date_str = tweet_lines[3]
                         tweet_content ="\n".join(tweet_lines[4:])
-
-                        if re.match(r"^\d+[smh]$", tweet_date_str):  # Matches "5s", "10m", "3h"
-                            num = int(re.findall(r"\d+", tweet_date_str)[0])
-                            unit = tweet_date_str[-1]
-                    
-                            if unit == "s":  # Seconds ago
-                                tweet_date = today - timedelta(seconds=num)
-                            elif unit == "m":  # Minutes ago
-                                tweet_date = today - timedelta(minutes=num)
-                            elif unit == "h":  # Hours ago
-                                tweet_date = today - timedelta(hours=num)
-
-                        elif "," in tweet_date_str:  # Full date format
-                            tweet_date = datetime.strptime(tweet_date_str, full_date_format)
-                    
-                        else:  # Short date format (assume current year)
-                            tweet_date = datetime.strptime(tweet_date_str, short_date_format)
-                            tweet_date = tweet_date.replace(year=today.year)
-
-                        print("Tweet date ="+str(tweet_date))
-
+                        tweet_date= format_date(tweet_date_str, last_tweet_date)
+                        last_tweet_date= tweet_date
                         if tweet_date < cutoff_date:
-                            break
-                        
+                            logging.info("Tweets are now older than 7 days... stopping")
+                            break       
                         tweet_details = {
                             "name": tweet_name,  
                             "username": tweet_username,
                             "date": str(tweet_date), 
                             "content": tweet_content
                         }
-
                         tweets_data["tweets"].append(tweet_details)
-
-                new_height= get_new_height(driver,new_tweets[-1])
-
+                new_height= get_new_height(driver,new_tweets[-1],last_height)
                 if  new_height== last_height:
                     logging.info("Reached end of page or no new tweets found.")
                     break  # Stop scrolling if no more content is loading
                 last_height = new_height  # Update last height   
-    
-    
-
     except Exception as e:
          logging.error(f"Error while scraping, check screenshot for more clues: {e}")
          take_screenshot("error_scrapping")
-    
+
+    except KeyboardInterrupt:
+        logging.warning("Process interrupted by the user!")
+        exit(1)      
     finally:
         df = pd.DataFrame(tweets_data)
         df.to_csv("solana_tweets.csv", index=False)
-        logging.info("Scraping finalized with errors. Data saved to solana_tweets_selenium.csv")
+        logging.info(f"Scraping finalized. {str(len(scraped_tweet_ids))} tweets were obtained. Data saved to solana_tweets_selenium.csv")
 
 
     
@@ -304,12 +344,12 @@ def logout():
     try:
 
         driver.get('https://x.com/logout')
-        time.sleep(5)
+        time.sleep(MAX_DELAY)
 
         text="Log out"
         logout = driver.find_element(By.XPATH, f"//span[contains(text(), '{text}')]")
         logout.click()
-        time.sleep(5)
+        time.sleep(MAX_DELAY)
 
     except Exception as e:
 
@@ -327,24 +367,17 @@ if __name__ == "__main__":
 
     logging.basicConfig(level=logging.INFO)
 
+    logging.info("🤖 Scraping X website for Solana-related tweets")
 
-    # Initialize the parser
-    parser = argparse.ArgumentParser(description='Scraper X tweets')
-    
-    # Add arguments
-    parser.add_argument('--keyword', action="store", dest='keyword', default='Solana')
+    logging.info("🌐 Initializing WebDriver. This might take a while...")
+    init_web_driver()
 
-    # Parse the arguments
-    args = parser.parse_args()
-    
-    logging.info("Scraping X website for tweets of {}".format(args.keyword))
+    logging.info("🚪 Login into X")
+    login()
 
-    try:
-        init_web_driver()
-        login()
-        scrape_x(args.keyword)
-        logout()
-    except Exception as e:
-        logging.error(f"Error while scraping: {e}")    
+    logging.info("💻 Performing scraping. CTRL-C to interrupt.")
+    scrape_x()
 
+    logging.info("👋 Logging out")
+    logout()
     
