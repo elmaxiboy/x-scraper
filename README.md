@@ -1,6 +1,6 @@
 # X/Twitter scrapping and sentiment-analysis tool
 
-This tool is intended to scrape tweets on the X platform from the las 7 days, based on search parameters defined by the user, and perform a basic sentiment analysis over the content of the tweets obtained. By default, it is configured to scrape Solana-related tweets.
+This tool is intended to scrape posts on the X platform from the las 7 days, based on search parameters defined by the user, and perform a basic sentiment analysis over the content of the tweets obtained. By default, it is configured to scrape Solana-related tweets.
 
 It uses [Selenium](https://huggingface.co/) to simulate a Firefox webdriver, and 3 open-source models obtained from the [Hugging Face](https://huggingface.co/) repository.
 
@@ -141,16 +141,16 @@ INFO:root:👋 Process concluded successfully. Tschüss!
         }
 ```
 
-| **Attribute**        | **Description**                                 | **Calculation**  | **Interpretation** |
-|----------------------|-------------------------------------------------|------------------|--------------------|
-| **name**             | Name of the tweet author                        | N/A              | Identifies the user posting the tweet |
-| **username**         | Twitter handle of the tweet author              | N/A              | Identifies the user's profile |
-| **date**             | Date and time when the tweet was posted         | Extracted from tweet metadata | Timestamp of the tweet, indicating when it was posted |
-| **content**          | Main body of the tweet                          | N/A              | The actual text in the tweet |
-| **citations**        | Mentions of other Twitter users in the tweet    | Extracted from content using regex (e.g., @username) | Other users tagged in the tweet |
-| **hashtags**         | Hashtags used in the tweet                      | Extracted from content using regex (e.g., #hashtag) | Topics or trends associated with the tweet |
-| **engagement_numbers**| Number of likes, comments, retweets, views    | Extracted from the tweet's metadata | Measures of how much interaction the tweet has received |
-| **base_sentiment**   | Sentiment of the tweet's content (positive, neutral, negative) | Sentiment analysis of tweet content | Indicates the general emotional tone of the tweet |
-| **risk_sentiment**   | Sentiment regarding potential risk or uncertainty | Analysis of words or context related to risk | Measures the perceived risk or uncertainty in the tweet's content |
-| **crypto_sentiment** | Sentiment regarding cryptocurrency topics       | Sentiment analysis based on keywords or context (e.g., Bitcoin, Solana) | Indicates how the tweet relates to crypto sentiment, either positive, neutral, or negative |
 
+| **Attribute**        | **Description**                                 | **Interpretation** |
+|----------------------|-------------------------------------------------|--------------------|
+| **name**             | Name of the post author                         | - |
+| **username**         | Username of the post author                     | - |
+| **date**             | Date and time when the post was made            | - |
+| **content**          | Main body of the post                           | - |
+| **citations**        | Mentions of other Twitter users in the post     | Interaction and relevance |
+| **hashtags**         | Hashtags used in the post                       | Topics or trends associated with the post |
+| **engagement_numbers**| Number of likes, comments, retweets, views (might be incomplete)     | Interaction and relevance|
+| **base_sentiment**   | General sentiment of the post's content (positive, neutral, negative) | General emotional tone|
+| **risk_sentiment**   | Sentiment regarding potential financial risk or uncertainty (bearish, neutral, bullish) | Perceived risk or uncertainty |
+| **crypto_sentiment** | Sentiment regarding cryptocurrency topics (positive, negative) | Emotional tone in regards Crypto topics |
