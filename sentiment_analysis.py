@@ -82,7 +82,7 @@ def sentiment_analysis(input_file):
                     "label" : "positive",
                     "score" : label["score"]
                     } 
-            tweet["tweet"]["sentiment-finBERT"]={
+            tweet["tweet"]["crypto_sentiment"]={
                 "label" : "negative",
                 "score" : label["score"]
                 } 
