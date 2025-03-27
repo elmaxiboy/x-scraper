@@ -32,9 +32,9 @@ pip install -r requirements.txt
 Within the project's root directory create a file named `.env` and add the following variables with your own values:
 
 ``` sh
-USERNAME=<your_X_username>
-PASSWORD=<your_X_password>
-EMAIL=<your_X_email_account>
+USERNAME=your_X_username
+PASSWORD=your_X_password
+EMAIL=your_X_email_account
 ```
 ### Configure search parameters:
 
@@ -56,7 +56,7 @@ The `search_params.json` contains the dictionary of parameters to build the sear
 
 **Note 1: When first runned, the script should download the requirements to emulate a Firefox webdriver and download the 3 sentiment-analysis models. This process can last for several minutes, depending on your internet speed**
 
-**Note 2: The UI interaction might fail due to unhandled exceptions (e.g. New pop-ups, elements not loading fast enough, webdriver failing, etc). Please retrying when such s scenario occur. Error screenshots are saved in the ´screenshots´ directory**
+**Note 2: The UI interaction might fail due to unhandled exceptions (e.g. New pop-ups, elements not loading fast enough, webdriver failing, etc). Please retrying when such s scenario occur. Error screenshots are saved in the screenshots/ directory for inspection**
 
 With the virtual environment activated and the requirements installed, run the main script.
 
@@ -93,16 +93,17 @@ INFO:root:👋 Process concluded successfully. Tschüss!
 
 ## Results and Interpretation
 
-2 files are saved under the  `results` directory, which is created if it does not exist. `scraped_tweets.json`, contains all the tweets obtained from the scrapping process, and `scraped_tweets_with_sentiment.json` is the same file but with the sentiment analysis results for every tweet. One result example would look like:
+2 files are saved under the  `/results` directory, which is created if it does not exist. `scraped_tweets.json`, contains all the tweets obtained from the scrapping process, and `scraped_tweets_with_sentiment.json` is the same file but with the sentiment analysis results for every tweet. One result example would look like:
 
 
 ``` sh
 
-"tweet": {
+        "tweet": {
             "name": "Oliver James {CRYPTO RECOVERY EXPERT}",
             "username": "@zishere99",
-            "date": "2025-03-27 00:53:00.024592",
-            "content": "ALERT \n\n &  are scamming investors by blocking withdrawals!  Lost ETH, USDT, or other assets? DM me for recovery help!\n\n             \n1\n94",
+            "date": "2025-03-27 00:38:27.550300",
+            "content": "ALERT \n\n &  are scamming investors by blocking withdrawals!  Lost ETH, USDT, or other assets? DM me for recovery help!\n\n             \n1\n95",
+            "citations": [],
             "hashtags": [
                 "#Fonnbit",
                 "#Civodex",
@@ -121,18 +122,34 @@ INFO:root:👋 Process concluded successfully. Tschüss!
                 "#RexoSwap",
                 "#Bitex24"
             ],
+            "engagement_numbers": [
+                1,
+                95
+            ],
             "base_sentiment": {
                 "label": "negative",
-                "score": 0.776423990726471
+                "score": 0.7736554145812988
             },
             "risk_sentiment": {
                 "label": "neutral",
-                "score": 0.7386616468429565
+                "score": 0.7449170351028442
             },
             "crypto_sentiment": {
                 "label": "negative",
-                "score": 0.9533347487449646
+                "score": 0.952109694480896
             }
         }
-
 ```
+
+| **Attribute** | **Descritpion**                    |**Calculation**                    | **Interpretation** |
+|---------------|------------------------------------|--------------------|
+|name|||
+|username|||
+|date|||
+|content|||
+|citations|||
+|hashtags|||<>
+|engagement_numbers|||
+|base_sentiment|||
+|risk_sentiment|||
+|crypto_sentiment|||

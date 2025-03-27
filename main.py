@@ -319,7 +319,12 @@ def scrape_x():
                             tweet_content =re.sub(r"#\w+", "", "\n".join(tweet_lines[4:])).strip()
                             tweet_date= format_date(tweet_date_str, last_tweet_date)
                             tweet_hashtags=re.findall(r"#\w+", "\n".join(tweet_lines[4:]))
+                            tweet_citations=re.findall(r"@\w+", "\n".join(tweet_lines[4:]))
                             last_tweet_date= tweet_date
+                            tweet_engagment_numbers = []
+                            for line in tweet_lines[-4:]: 
+                                tweet_engagment_numbers.extend(map(int, re.findall(r"\b\d+\b", line))) 
+
                             if tweet_date < cutoff_date:
                                 logging.info("Tweets are now older than 7 days... stopping")
                                 break       
@@ -328,7 +333,9 @@ def scrape_x():
                                 "username": tweet_username,
                                 "date": str(tweet_date), 
                                 "content": tweet_content,
-                                "hashtags":tweet_hashtags
+                                "citations": tweet_citations,
+                                "hashtags":tweet_hashtags,
+                                "engagement_numbers":tweet_engagment_numbers
                             }
                             tweets_data["tweet"].append(tweet_details)
                     except StaleElementReferenceException as e:
