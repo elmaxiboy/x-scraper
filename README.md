@@ -4,7 +4,7 @@ This tool is intended to scrape posts on the X platform from the las 7 days, bas
 
 It uses [Selenium](https://huggingface.co/) to simulate a Firefox webdriver, and 3 pre-trained, open-source models obtained from the [Hugging Face](https://huggingface.co/) repository.
 
-Due to the [anti-scrapping policies of X](https://x.com/en/tos), this tool requires the user to put in a 2FA code while logging-in. The user must have registered X account and [configured to use 2FA](https://help.x.com/en/managing-your-account/two-factor-authentication). During the development process [Microsoft Authenticator App](https://www.microsoft.com/de-de/security/mobile-authenticator-app) was used. 
+Due to the [anti-scrapping policies of X](https://x.com/en/tos), and to avoid getting my accout blocked due to [suspicious activity](https://github.com/elmaxiboy/x-scraper/blob/main/screenshots/common_errors/suspicious_login.png), this tool requires the user to put in a 2FA code while logging-in. The user must have registered X account and [configured to use 2FA](https://help.x.com/en/managing-your-account/two-factor-authentication). During the development process [Microsoft Authenticator App](https://www.microsoft.com/de-de/security/mobile-authenticator-app) was used. 
 
 
 ## Getting started
@@ -153,38 +153,47 @@ To generate a score for each post/tweet based on relevance, risk and reliability
 | **citations**        | Mentions of other Twitter users in the post     | Interaction and relevance |
 | **hashtags**         | Hashtags used in the post                       | Relevance and "trendiness" associated with the post |
 | **engagement_numbers**| Number of likes, comments, reposts, views, respectively. (Might be incomplete)     | Interaction and relevance|
-| **base_sentiment**   | General sentiment of the post's content (positive, neutral, negative)[link to model](https://huggingface.co/cardiffnlp/twitter-roberta-base-sentiment) | General emotional tone|
-| **risk_sentiment**   | Sentiment regarding potential financial risk or uncertainty (bearish, neutral, bullish)[link to model](https://huggingface.co/ElKulako/cryptobert) | Perceived risk or uncertainty |
+| **base_sentiment**   | General sentiment of the post's content (positive, neutral, negative) [link to model](https://huggingface.co/cardiffnlp/twitter-roberta-base-sentiment) | General emotional tone|
+| **risk_sentiment**   | Sentiment regarding potential financial risk or uncertainty (bearish, neutral, bullish) [link to model](https://huggingface.co/ElKulako/cryptobert) | Perceived risk or uncertainty |
 | **crypto_sentiment** | Sentiment regarding cryptocurrency topics (positive, negative) [link to model](https://huggingface.co/kk08/CryptoBERT) | Emotional tone in regards Crypto topics |
 
 As they are, these output parameters can be used to further build a basic scoring mechanism to complement decision-making situations.
 
 ### A score for Relevance
 The relevance score of a tweet can be calculated as a function of:
--The amount of followers a user has, higher scores are assigned with incresing amount of followers.
--The date of the post, where recent posts receive higher scores. The logic behind is that a 1-week old post does not add novelty and its effect is likely already absorved by the market, in comparison to a recent post.
--The relevance of the accounts that are cited. If the usernames cited are popular, the tweet might belong to a relevant event. This parameter can also consider keeping track of how many times different accounts/usernames are cited in the posts scrapped.
--Something similar occurs with hashtags. Eventhough the posters might not be popular, if a hashtag is used many times within a timeframe it might indicate more relevance.
--The engagement numbers (likes, comments, reposts, views) can also add to the relevance of the post, higher numbers mean that people got interested and engaged with the content. An engagement could have derived in a concrete market decision made by the viewer afterwards. 
+- The amount of followers a user has, higher scores are assigned with incresing amount of followers.
+- The date of the post, where recent posts receive higher scores. The logic behind is that a 1-week old post does not add novelty and its effect is likely already absorved by the market, in comparison to a recent post.
+- The relevance of the accounts that are cited. If the usernames cited are popular, the tweet might belong to a relevant event. This parameter can also consider keeping track of how many times different accounts/usernames are cited in the posts scrapped.
+- Something similar occurs with hashtags. Eventhough the posters might not be popular, if a hashtag is used many times within a timeframe it might indicate more relevance.
+- The engagement numbers (likes, comments, reposts, views) can also add to the relevance of the post, higher numbers mean that people got interested and engaged with the content. An engagement could have derived in a concrete market decision made by the viewer afterwards. 
 
 ### A score for Risk
 
 The risk score given by the **risk_sentiment** output parameter, can be complemented by:
--Tracking price and volume changes. The risk score can be weighted by the delta change based on the previous values. A post its going to be more risky if the change from the previous post associated to the same content exhibits great changes.
--Hashtag clustering could serve to calculate risk respectively for different categories. E.g. #CryptoHack vs #CryptoLaw could mean different degrees of risk regarding the timeframe of action.
--Timestamp the post could also moderate the risk of a post. For certain categories, a post can be more or less risky based on how old it is.
--**base_sentiment** and **crypto_sentiment** can also serve as weights to the risk score. Positive-sentiment posts could decrease the risk score, and viceversa. 
+- Tracking price and volume changes. The risk score can be weighted by the delta change based on the previous values. A post its going to be more risky if the change from the previous post associated to the same content exhibits great changes.
+- Hashtag clustering could serve to calculate risk respectively for different categories. E.g. #CryptoHack vs #CryptoLaw could mean different degrees of risk regarding the timeframe of action.
+- Timestamp the post could also moderate the risk of a post. For certain categories, a post can be more or less risky based on how old it is.
+- **base_sentiment** and **crypto_sentiment** can also serve as weights to the risk score. Positive-sentiment posts could decrease the risk score, and viceversa. 
 
 
 ### A score for Reliability
 
 Reliability can be calculated as a function of:
--The nature of the post user. Different weights can apply for humans, bots, exchanges, politics, celebrities, etc.
--The amount of followers. A post belonging to a popular account can serve as a proxy to credibility and trustworthiness.
--Timestamp can also moderate the score, similar to the previously explained.
+- The nature of the post user. Different weights can apply for humans, bots, exchanges, politics, celebrities, etc.
+- The amount of followers. A post belonging to a popular account can serve as a proxy to credibility and trustworthiness.
+- Timestamp can also moderate the score, similar to the previously explained.
 
 
 ## TODOs
 
 In order to achieve such a scoring mechaism, the current tool must be improved and iterated. The current scraping mechanism only retrieves the visible text present on the feed page after a search is performed, and is lacking relevant data related to the user that posted (E.g. Number of followers, nature). This could be achieved by scraping the profiles respectively and storing the values in a separated dictionary. The **engagement_numbers** must be appropiately identified. The sentiment analysis models could be specifically trained and validated for this use case. **hashtags** can be appropiately clustered to allow for a more specfic analysis of relevance. The use of a pay-per-use API could greatly improve the data-retrieving process (speed and completeness) and would be more compliant to the terms of use of X, or any other digital social network. Once this checklist is carried out, the scoring mechanism should be on a more solid platform to be built upon.
 
+## Aknowledgements
+
+This project was developed as a coding challenge for the TUM BlockSprint 2025, in less than 48 hours. It contains many details, feel free to contribute. A similar and more complete project that I used for reference on X web selectors and UI navigation is on [this repo](https://github.com/godkingjay/selenium-twitter-scraper).
+
+The models used for sentiment-analysis can be found here:
+
+- [cardiffnlp, twitter-roberta-base-sentiment](https://huggingface.co/cardiffnlp/twitter-roberta-base-sentiment) | General emotional tone|
+- [ElKulako, cryptobert](https://huggingface.co/ElKulako/cryptobert) | Perceived risk or uncertainty |
+- [kk08, CryptoBERT](https://huggingface.co/kk08/CryptoBERT) 
