@@ -1,6 +1,6 @@
-# X/Twitter scrapping and sentiment-analysis tool
+# X posts scraper and sentiment analysis tool
 
-This tool is intended to scrape posts on the X platform from the las 7 days, based on search parameters defined by the user, and perform a basic sentiment analysis over the content of the tweets/posts obtained. By default, it is configured to scrape Solana-related posts from the feed page, directly after a search.
+This tool is intended to scrape posts on the X (former Twitter) platform from the last 7 days, based on search parameters defined by the user, and perform a basic sentiment analysis over the content of the tweets/posts obtained. By default, it is configured to scrape Solana-related posts from the feed page, directly after a search.
 
 It uses [Selenium](https://huggingface.co/) to simulate a Firefox webdriver, and 3 pre-trained, open-source models obtained from the [Hugging Face](https://huggingface.co/) repository.
 
