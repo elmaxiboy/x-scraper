@@ -141,15 +141,16 @@ INFO:root:👋 Process concluded successfully. Tschüss!
         }
 ```
 
-| **Attribute** | **Descritpion**                    |**Calculation**                    | **Interpretation** |
-|---------------|------------------------------------|--------------------|
-|name|||
-|username|||
-|date|||
-|content|||
-|citations|||
-|hashtags|||<>
-|engagement_numbers|||
-|base_sentiment|||
-|risk_sentiment|||
-|crypto_sentiment|||
+| **Attribute**        | **Description**                                 | **Calculation**  | **Interpretation** |
+|----------------------|-------------------------------------------------|------------------|--------------------|
+| **name**             | Name of the tweet author                        | N/A              | Identifies the user posting the tweet |
+| **username**         | Twitter handle of the tweet author              | N/A              | Identifies the user's profile |
+| **date**             | Date and time when the tweet was posted         | Extracted from tweet metadata | Timestamp of the tweet, indicating when it was posted |
+| **content**          | Main body of the tweet                          | N/A              | The actual text in the tweet |
+| **citations**        | Mentions of other Twitter users in the tweet    | Extracted from content using regex (e.g., @username) | Other users tagged in the tweet |
+| **hashtags**         | Hashtags used in the tweet                      | Extracted from content using regex (e.g., #hashtag) | Topics or trends associated with the tweet |
+| **engagement_numbers**| Number of likes, comments, retweets, views    | Extracted from the tweet's metadata | Measures of how much interaction the tweet has received |
+| **base_sentiment**   | Sentiment of the tweet's content (positive, neutral, negative) | Sentiment analysis of tweet content | Indicates the general emotional tone of the tweet |
+| **risk_sentiment**   | Sentiment regarding potential risk or uncertainty | Analysis of words or context related to risk | Measures the perceived risk or uncertainty in the tweet's content |
+| **crypto_sentiment** | Sentiment regarding cryptocurrency topics       | Sentiment analysis based on keywords or context (e.g., Bitcoin, Solana) | Indicates how the tweet relates to crypto sentiment, either positive, neutral, or negative |
+
