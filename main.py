@@ -308,27 +308,32 @@ def scrape_x():
             if len(new_tweets)>0:
                 logging.info(f"{len(new_tweets)} new tweets were found.")
                 for tweet in new_tweets:
-                    if tweet.id not in scraped_tweet_ids:
-                        scraped_tweet_ids.add(tweet.id)
-                        tweet_lines = tweet.text.split("\n")
-                        tweet_name = tweet_lines[0]
-                        tweet_username = tweet_lines[1]
-                        tweet_date_str = tweet_lines[3]
-                        tweet_content =re.sub(r"#\w+", "", "\n".join(tweet_lines[4:])).strip()
-                        tweet_date= format_date(tweet_date_str, last_tweet_date)
-                        tweet_hashtags=re.findall(r"#\w+", "\n".join(tweet_lines[4:]))
-                        last_tweet_date= tweet_date
-                        if tweet_date < cutoff_date:
-                            logging.info("Tweets are now older than 7 days... stopping")
-                            break       
-                        tweet_details = {
-                            "name": tweet_name,  
-                            "username": tweet_username,
-                            "date": str(tweet_date), 
-                            "content": tweet_content,
-                            "hashtags":tweet_hashtags
-                        }
-                        tweets_data["tweet"].append(tweet_details)
+                    try:
+                         
+                        if tweet.id not in scraped_tweet_ids:
+                            scraped_tweet_ids.add(tweet.id)
+                            tweet_lines = tweet.text.split("\n")
+                            tweet_name = tweet_lines[0]
+                            tweet_username = tweet_lines[1]
+                            tweet_date_str = tweet_lines[3]
+                            tweet_content =re.sub(r"#\w+", "", "\n".join(tweet_lines[4:])).strip()
+                            tweet_date= format_date(tweet_date_str, last_tweet_date)
+                            tweet_hashtags=re.findall(r"#\w+", "\n".join(tweet_lines[4:]))
+                            last_tweet_date= tweet_date
+                            if tweet_date < cutoff_date:
+                                logging.info("Tweets are now older than 7 days... stopping")
+                                break       
+                            tweet_details = {
+                                "name": tweet_name,  
+                                "username": tweet_username,
+                                "date": str(tweet_date), 
+                                "content": tweet_content,
+                                "hashtags":tweet_hashtags
+                            }
+                            tweets_data["tweet"].append(tweet_details)
+                    except StaleElementReferenceException as e:
+                         logging.warning("Scrolling relying on stale element. Skipping...")
+                         continue
                 new_height= get_new_height(driver,new_tweets[-1],last_height)
                 if  new_height== last_height:
                     logging.info("Reached end of page or no new tweets found.")
