@@ -77,7 +77,7 @@ When asked to, write your 2FA code in the terminal to and hit enter:
 
 ```
 
-Upon a successful run, your terminal should look like more or less like this:
+Upon a successful run, your terminal should look, more or less, like this:
 
 ``` sh
 
