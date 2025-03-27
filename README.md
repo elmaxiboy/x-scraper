@@ -1,10 +1,10 @@
 # X/Twitter scrapping and sentiment-analysis tool
 
-This tool is intended to scrape tweets on the X platform, based on search parameters defined by the user, and perform a basic sentiment analysis over the content of the tweets obtained . By default, it is configured to scrape Solana-related tweets.
+This tool is intended to scrape tweets on the X platform from the las 7 days, based on search parameters defined by the user, and perform a basic sentiment analysis over the content of the tweets obtained. By default, it is configured to scrape Solana-related tweets.
 
 It uses [Selenium](https://huggingface.co/) to simulate a Firefox webdriver, and 3 open-source models obtained from the [Hugging Face](https://huggingface.co/) repository.
 
-Due to the [anti-scrapping policies of X](https://x.com/en/tos), this tool requires the user to put in a 2FA code. The user must have registered X account and [configured to use 2FA](https://help.x.com/en/managing-your-account/two-factor-authentication). During the development process [Microsoft Authenticator App](https://www.microsoft.com/de-de/security/mobile-authenticator-app) was used. 
+Due to the [anti-scrapping policies of X](https://x.com/en/tos), this tool requires the user to put in a 2FA code while logging-in. The user must have registered X account and [configured to use 2FA](https://help.x.com/en/managing-your-account/two-factor-authentication). During the development process [Microsoft Authenticator App](https://www.microsoft.com/de-de/security/mobile-authenticator-app) was used. 
 
 
 ## Getting started
@@ -54,7 +54,9 @@ The `search_params.json` contains the dictionary of parameters to build the sear
 
 ## Run the program
 
-**Note: When first runned, the script should download the requirements to emulate a Firefox webdriver and download the 3 sentiment-analysis models. This process can last for several minutes, depending on your internet speed**
+**Note 1: When first runned, the script should download the requirements to emulate a Firefox webdriver and download the 3 sentiment-analysis models. This process can last for several minutes, depending on your internet speed**
+
+**Note 2: The UI interaction might fail due to unhandled exceptions (e.g. New pop-ups, elements not loading fast enough, webdriver failing, etc). Please retrying when such s scenario occur. Error screenshots are saved in the ´screenshots´ directory**
 
 With the virtual environment activated and the requirements installed, run the main script.
 
@@ -97,26 +99,39 @@ INFO:root:👋 Process concluded successfully. Tschüss!
 ``` sh
 
 "tweet": {
-            "name": "h173k TradeForImpact.com",
-            "username": "@h173k",
-            "date": "2025-03-27 01:10:24.686339",
-            "content": "Replying to \n@sadifying\nThe ticker is H173k. Most low risk EVER. Just started with almost no lq so it's easy to get few  of it and see it pump to the stars (forget about the moon!).  . Want to learn more? Watch my live streams\n1\n41",
+            "name": "Oliver James {CRYPTO RECOVERY EXPERT}",
+            "username": "@zishere99",
+            "date": "2025-03-27 00:53:00.024592",
+            "content": "ALERT \n\n &  are scamming investors by blocking withdrawals!  Lost ETH, USDT, or other assets? DM me for recovery help!\n\n             \n1\n94",
             "hashtags": [
-                "#USDT",
+                "#Fonnbit",
+                "#Civodex",
+                "#CryptoScam",
+                "#Asdebit",
+                "#CryptoRecovery",
+                "#Scam",
+                "#Girdex",
                 "#Solana",
-                "#memecoin"
+                "#Blofin",
+                "#Dexozer",
+                "#Macord",
+                "#Helius",
+                "#Xdoxo",
+                "#Axellbit",
+                "#RexoSwap",
+                "#Bitex24"
             ],
             "base_sentiment": {
-                "label": "positive",
-                "score": 0.5379440784454346
+                "label": "negative",
+                "score": 0.776423990726471
             },
             "risk_sentiment": {
                 "label": "neutral",
-                "score": 0.8829538226127625
+                "score": 0.7386616468429565
             },
-            "sentiment-finBERT": {
+            "crypto_sentiment": {
                 "label": "negative",
-                "score": 0.9401648044586182
+                "score": 0.9533347487449646
             }
         }
 
