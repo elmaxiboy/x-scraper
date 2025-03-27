@@ -4,7 +4,7 @@ This tool is intended to scrape posts on the X platform from the las 7 days, bas
 
 It uses [Selenium](https://huggingface.co/) to simulate a Firefox webdriver, and 3 pre-trained, open-source models obtained from the [Hugging Face](https://huggingface.co/) repository.
 
-Due to the [anti-scrapping policies of X](https://x.com/en/tos), and to avoid getting my accout blocked due to [suspicious activity](https://github.com/elmaxiboy/x-scraper/blob/main/screenshots/common_errors/suspicious_login.png), this tool requires the user to put in a 2FA code while logging-in. The user must have a registered X account and [configured to use 2FA](https://help.x.com/en/managing-your-account/two-factor-authentication).For this purpose, during the development process [Microsoft Authenticator App](https://www.microsoft.com/de-de/security/mobile-authenticator-app) was used. 
+Due to the [anti-scrapping policies of X](https://x.com/en/tos), and to avoid getting my accout blocked due to [suspicious activity](https://github.com/elmaxiboy/x-scraper/blob/main/screenshots/common_errors/suspicious_login.png), this tool requires the user to put in a 2FA code while logging-in. The user must have a registered X account and [configured to use 2FA](https://help.x.com/en/managing-your-account/two-factor-authentication). For this purpose, during the development process [Microsoft Authenticator App](https://www.microsoft.com/de-de/security/mobile-authenticator-app) was used. 
 
 
 ## Getting started
@@ -68,7 +68,7 @@ With the virtual environment activated and the requirements installed, run the m
 python main.py
 ```
 
-Write your 2FA code when asked to by the terminal and hit enter:
+When asked to, write your 2FA code in the terminal to and hit enter:
 
 ``` sh
 ...
