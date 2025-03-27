@@ -140,7 +140,7 @@ INFO:root:👋 Process concluded successfully. Tschüss!
             }
         }
 ```
-
+To generate a score based on relevance, risk and reliability, lets first explain the parameters involved on the foillowing table:
 
 | **Attribute**        | **Description**                                 | **Interpretation** |
 |----------------------|-------------------------------------------------|--------------------|
@@ -149,7 +149,7 @@ INFO:root:👋 Process concluded successfully. Tschüss!
 | **date**             | Date and time when the post was made            | - |
 | **content**          | Main body of the post                           | - |
 | **citations**        | Mentions of other Twitter users in the post     | Interaction and relevance |
-| **hashtags**         | Hashtags used in the post                       | Topics or trends associated with the post |
+| **hashtags**         | Hashtags used in the post                       | Trends associated with the post |
 | **engagement_numbers**| Number of likes, comments, retweets, views (might be incomplete)     | Interaction and relevance|
 | **base_sentiment**   | General sentiment of the post's content (positive, neutral, negative) | General emotional tone|
 | **risk_sentiment**   | Sentiment regarding potential financial risk or uncertainty (bearish, neutral, bullish) | Perceived risk or uncertainty |
