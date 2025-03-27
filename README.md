@@ -40,7 +40,7 @@ EMAIL=your_X_email_account
 
 **Warning! The tool has not been tested with many different search configurations and could not work properly if radically changed. To test it first, using the default parameters is recommended.**
 
-**Note: Currently the tool considers only the first languange and type parameter present in the dictionary**
+**Note: Currently, the tool considers only the first item in the "langs" and "types" keys present in the dictionary**
 
 The `search_params.json` contains the dictionary of parameters to build the search query, change it to test more configurations:
 
@@ -106,7 +106,7 @@ INFO:root:👋 Process concluded successfully. Tschüss!
 
 ## Results interpretation and possible scoring approaches
 
-2 files are saved under the  `/results` directory, which is created if it does not exist. `scraped_tweets.json`, contains all the tweets obtained from the scrapping process, and `scraped_tweets_with_sentiment.json` is the same file but with the sentiment analysis results for every tweet. One result example would look like:
+2 files are saved under the  `/results` directory, which is created if it does not exist. `scraped_tweets.json`, contains all the tweets obtained from the scrapping process, and `scraped_tweets_with_sentiment.json` is the same file but with the sentiment analysis results for every tweet. One result example would look like the following:
 
 
 ``` sh
@@ -197,7 +197,7 @@ Reliability can be calculated as a function of:
 
 ## TODOs
 
-In order to achieve such a scoring mechaism, the current tool must be improved and iterated. The current scraping mechanism only retrieves the visible text present on the feed page after a search is performed, and is lacking relevant data related to the user that posted (E.g. Number of followers, nature). This could be achieved by scraping the profiles respectively and storing the values in a separated dictionary. The **engagement_numbers** must be appropiately identified. The sentiment analysis models could be specifically trained and validated for this use case. **hashtags** can be appropiately clustered to allow for a more specfic analysis of relevance. The use of a pay-per-use API could greatly improve the data-retrieving process (speed and completeness) and would be more compliant to the terms of use of X, or any other digital social network. Once this checklist is carried out, the scoring mechanism should be on a more solid platform to be built upon.
+In order to achieve such a scoring mechaism, the current tool must be improved and iterated. The current scraping mechanism only retrieves the visible text present on the feed page after a search is performed, and is lacking relevant data related to the user that posted (E.g. Number of followers, nature). This could be achieved by scraping the profiles respectively and storing the values in a separated dictionary. The **engagement_numbers** must be appropiately identified. The sentiment analysis models could be specifically trained and validated for this use case. **hashtags** can be appropiately clustered to allow for a more specfic analysis of relevance. The [search query](https://x.com/search-advanced?lang=en) that is concatenated must be further studied and tested, as adding or removing hashtags or keywords can result in different groups of posts being retrieved. The use of a pay-per-use API could greatly improve the data-retrieving process (speed and completeness) and would be more compliant to the terms of use of X, or any other digital social network. Once this checklist is carried out, the scoring mechanism should be on a more solid platform to be built upon.
 
 ## Aknowledgements
 
