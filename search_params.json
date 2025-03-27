@@ -1,6 +1,6 @@
 {
-    "queries": ["solana", "solana news", "solana crypto","solana hack","solana exploit"],
-    "hashtags": ["#solana", "#crypto","#SOL"],
-    "langs": ["en", "es"],
+    "queries": ["solana", "solana news", "crypto scam","solana scam","solana hack","solana exploit"],
+    "hashtags": ["#solana", "#crypto","#SOL","#breaking","#scam","#cryptonews"],
+    "langs": ["en"],
     "types": ["live", "top"]
 }

@@ -22,7 +22,7 @@ driver = None
 load_dotenv()
 
 
-tweets_data = {"tweets": []}
+tweets_data = {"tweet":[]}
 
 full_date_format = "%b %d, %Y"  # Example: "Oct 17, 2015"
 short_date_format = "%b %d" # Example: "Mar 26"
@@ -78,6 +78,7 @@ def init_web_driver():
         driver.maximize_window()
     except Exception as e:
          logging.error(f"Failed to initialize WebDriver: {e}")
+         raise(e)
 
 def take_screenshot(step):
     
@@ -282,7 +283,6 @@ def scrape_x():
 
     with open("search_params.json", "r", encoding="utf-8") as file:
         search_params = json.load(file) 
-
    
     try:
         search_url= generate_search_url(search_params)
@@ -317,7 +317,7 @@ def scrape_x():
                             "date": str(tweet_date), 
                             "content": tweet_content
                         }
-                        tweets_data["tweets"].append(tweet_details)
+                        tweets_data["tweet"].append(tweet_details)
                 new_height= get_new_height(driver,new_tweets[-1],last_height)
                 if  new_height== last_height:
                     logging.info("Reached end of page or no new tweets found.")
@@ -332,8 +332,8 @@ def scrape_x():
         exit(1)      
     finally:
         df = pd.DataFrame(tweets_data)
-        df.to_csv("solana_tweets.csv", index=False)
-        logging.info(f"Scraping finalized. {str(len(scraped_tweet_ids))} tweets were obtained. Data saved to solana_tweets_selenium.csv")
+        df.to_json("solana_tweets.json",indent=4,orient="records")
+        logging.info(f"Scraping finalized. {str(len(scraped_tweet_ids))} tweets were obtained. Data saved to solana_tweets.json")
 
 
     
@@ -375,7 +375,7 @@ if __name__ == "__main__":
     logging.info("🚪 Login into X")
     login()
 
-    logging.info("💻 Performing scraping. CTRL-C to interrupt.")
+    logging.info("💻 Scraping tweets from the past 7 days. CTRL-C to interrupt.")
     scrape_x()
 
     logging.info("👋 Logging out")
