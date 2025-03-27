@@ -4,7 +4,7 @@ This tool is intended to scrape posts on the X platform from the las 7 days, bas
 
 It uses [Selenium](https://huggingface.co/) to simulate a Firefox webdriver, and 3 pre-trained, open-source models obtained from the [Hugging Face](https://huggingface.co/) repository.
 
-Due to the [anti-scrapping policies of X](https://x.com/en/tos), and to avoid getting my accout blocked due to [suspicious activity](https://github.com/elmaxiboy/x-scraper/blob/main/screenshots/common_errors/suspicious_login.png), this tool requires the user to put in a 2FA code while logging-in. The user must have registered X account and [configured to use 2FA](https://help.x.com/en/managing-your-account/two-factor-authentication). During the development process [Microsoft Authenticator App](https://www.microsoft.com/de-de/security/mobile-authenticator-app) was used. 
+Due to the [anti-scrapping policies of X](https://x.com/en/tos), and to avoid getting my accout blocked due to [suspicious activity](https://github.com/elmaxiboy/x-scraper/blob/main/screenshots/common_errors/suspicious_login.png), this tool requires the user to put in a 2FA code while logging-in. The user must have a registered X account and [configured to use 2FA](https://help.x.com/en/managing-your-account/two-factor-authentication).For this purpose, during the development process [Microsoft Authenticator App](https://www.microsoft.com/de-de/security/mobile-authenticator-app) was used. 
 
 
 ## Getting started
@@ -194,6 +194,6 @@ This project was developed as a coding challenge for the TUM BlockSprint 2025, i
 
 The models used for sentiment-analysis can be found here:
 
-- [cardiffnlp, twitter-roberta-base-sentiment](https://huggingface.co/cardiffnlp/twitter-roberta-base-sentiment) | General emotional tone|
-- [ElKulako, cryptobert](https://huggingface.co/ElKulako/cryptobert) | Perceived risk or uncertainty |
-- [kk08, CryptoBERT](https://huggingface.co/kk08/CryptoBERT) 
+- [cardiffnlp, twitter-roberta-base-sentiment](https://huggingface.co/cardiffnlp/twitter-roberta-base-sentiment)
+- [ElKulako, cryptobert](https://huggingface.co/ElKulako/cryptobert)
+- [kk08, CryptoBERT](https://huggingface.co/kk08/CryptoBERT)
