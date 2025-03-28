@@ -24,7 +24,7 @@ source .venv/bin/activate # On Linux/MacOS
 
 Make sure to have [pip](https://packaging.python.org/en/latest/tutorials/installing-packages/) installed, then run:
 
-**Note: Depending on your local environment you might need extra libraries or compilers (cmake, rustc...) to install the requirements.txt thoroughly. Please pay attention to the terminal messages and make sure to install everything**
+**Note: Depending on your local environment you might need extra libraries or compilers (cmake, rustc...) to install the requirements.txt thoroughly. Please pay attention to the terminal messages and make sure to install everything.**
 
 ``` sh
 pip install -r requirements.txt
