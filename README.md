@@ -9,6 +9,10 @@ Due to the [anti-scrapping policies of X](https://x.com/en/tos), and to avoid ge
 
 ## Getting started
 
+### Install Firefox browser
+To use the emulating capabilities of Selenium, the [Firefox browser must be installed](https://support.mozilla.org/en-US/products/firefox/installation-and-updates/install). Choose a version that matches your OS.
+
+### Make sure to have Python installed
 [Python version 3.12.3](https://www.python.org/downloads/release/python-3123/) was used, make sure your envorinment meets this requirement.
 
 ### Create and activate a virtual environment within the project's root directory:
