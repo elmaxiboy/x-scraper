@@ -77,15 +77,11 @@ def sentiment_analysis(input_file):
         classifier = pipeline("sentiment-analysis", model=model, tokenizer=tokenizer)
         predicted_labels = classifier(tweets)
         for tweet, label in zip(data, predicted_labels):
-            if label=="LABEL_1":
-                tweet["tweet"]["crypto_sentiment"]={
-                    "label" : "positive",
-                    "score" : label["score"]
-                    } 
+            sentiment_label = "positive" if label["label"] == "LABEL_1" else "negative"
             tweet["tweet"]["crypto_sentiment"]={
-                "label" : "negative",
+                "label" : sentiment_label,
                 "score" : label["score"]
-                } 
+            }
 
     except Exception as e:
          logging.error(f"Error while performing sentiment analysis: {e}")
