@@ -39,9 +39,9 @@ pip install -r requirements.txt
 Within the project's root directory create a file named `.env` and add the following variables with your own values:
 
 ``` sh
-USERNAME=your_X_username
-PASSWORD=your_X_password
-EMAIL=your_X_email_account
+X_USERNAME=your_X_username
+X_PASSWORD=your_X_password
+X_EMAIL=your_X_email_account
 ```
 ### Configure search parameters:
 
