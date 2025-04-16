@@ -246,6 +246,8 @@ def generate_search_url(params):
     
    
     query_str += f"&lang={lang}&src=typed_query&f={tweet_type}"
+
+    logging.info("Search URL is: "+base_url + query_str)
     
     return base_url + query_str
 
@@ -316,7 +318,7 @@ def scrape_x():
                             tweet_name = tweet_lines[0]
                             tweet_username = tweet_lines[1]
                             tweet_date_str = tweet_lines[3]
-                            tweet_content =re.sub(r"#\w+", "", "\n".join(tweet_lines[4:])).strip()
+                            tweet_content ="\n".join(tweet_lines[4:]).strip()
                             tweet_date= format_date(tweet_date_str, last_tweet_date)
                             tweet_hashtags=re.findall(r"#\w+", "\n".join(tweet_lines[4:]))
                             tweet_citations=re.findall(r"@\w+", "\n".join(tweet_lines[4:]))
@@ -356,7 +358,14 @@ def scrape_x():
     finally:
         df = pd.DataFrame(tweets_data)
         os.makedirs("results/",exist_ok=True)
-        df.to_json(OUTPUT_NAME,indent=4,orient="records")
+
+        # Convert the DataFrame to a list of dicts
+        records = df.to_dict(orient="records")
+
+        # Write using json.dump with ensure_ascii=False
+        with open(OUTPUT_NAME, "w", encoding="utf-8") as f:
+            json.dump(records, f, indent=4, ensure_ascii=False)
+
         logging.info(f"Scraping finalized. {str(len(scraped_tweet_ids))} tweets were obtained. Data saved to {OUTPUT_NAME}")
 
 
@@ -389,7 +398,7 @@ if __name__ == "__main__":
 
     logging.basicConfig(level=logging.INFO)
 
-    logging.info("🤖 Scraping X website for Solana-related tweets")
+    logging.info("🤖 Scraping X website for tweets")
 
     logging.info("🌐 Initializing WebDriver. This might take a while...")
     init_web_driver()
